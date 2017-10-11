@@ -32,7 +32,7 @@ def parse(conn):  # обработка соединения в отдельно�
         if udata.upper() == "TIME":
             time(conn)
         elif udata.upper() == "CLOSE":
-            print("Closed")
+            conn.send(b'CLOSE' + b'END')
             conn.close()
         else:
             no_such_command(conn)

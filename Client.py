@@ -24,6 +24,9 @@ def analyze_server_answer(answer, message):
     elif args == b'FALSE':
         print("File loaded.")
         return False
+    elif args == b'CLOSE':
+        print("Closed by client request")
+        raise ConnectionAbortedError
     else:
         print(answer.decode("utf-8").strip())
         return False
@@ -48,11 +51,12 @@ def reconnect(m_socket, addr):
     return m_socket
 
 
+addr = ("127.0.0.1", 6000)
 clientSocket = socket.socket(socket.AF_INET,
                              socket.SOCK_STREAM,
                              socket.IPPROTO_TCP)
 try:
-    clientSocket.connect(("127.0.0.1", 6000))
+    clientSocket.connect(addr)
     clientSocket.settimeout(30)
 
     while 1:
@@ -71,11 +75,13 @@ try:
                         answer += packet
                 result = analyze_server_answer(answer, message)
             except socket.timeout:
-                clientSocket = reconnect(clientSocket, ("127.0.0.1", 6000))
+                clientSocket = reconnect(clientSocket, addr)
             except ConnectionResetError:
-                clientSocket = reconnect(clientSocket, ("127.0.0.1", 6000))
+                clientSocket = reconnect(clientSocket, addr)
 except ConnectionRefusedError:
     print("Can't connect to server.")
+except ConnectionAbortedError:
+    pass
 except OSError:
     print("Can't reconnect to server.")
 finally:
